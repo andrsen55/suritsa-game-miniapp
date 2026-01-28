@@ -1,8 +1,7 @@
 // ===============================
-// Telegram WebApp init
+// Telegram init
 // ===============================
 const isTG = !!(window.Telegram && Telegram.WebApp);
-
 if (isTG) {
   Telegram.WebApp.expand();
   Telegram.WebApp.ready();
@@ -21,62 +20,42 @@ const rewardBtn = document.getElementById("rewardBtn");
 const restartBtn = document.getElementById("restartBtn");
 
 // ===============================
-// Game state
+// STATE
 // ===============================
-let fill = 0;        // 0..100
-let foam = 0;        // 0..100
-let wildness = 0;
+let fill = 0;
+let foam = 0;
 let pouring = false;
 let ended = false;
-
-let discount = 0;   // 5 / 10 / 15
+let discount = 0;
 
 // ===============================
-// Helpers
+// HELPERS
 // ===============================
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function calculateDiscountSoft(fill) {
-  if (fill < 35) return 5;
-  if (fill < 70) return 10;
+function calculateDiscount(fill) {
+  if (fill < 30) return 5;
+  if (fill < 65) return 10;
   return 15;
 }
 
-function updateState() {
-  if (wildness < 30) stateEl.textContent = "Calm";
-  else if (wildness < 65) stateEl.textContent = "Active";
-  else stateEl.textContent = "Wild";
-}
-
-function haptic(type) {
-  if (!isTG || !Telegram.WebApp.HapticFeedback) return;
-  try {
-    if (type === "success") Telegram.WebApp.HapticFeedback.notificationOccurred("success");
-    if (type === "light") Telegram.WebApp.HapticFeedback.impactOccurred("light");
-  } catch (e) {}
-}
-
 function render() {
-  liquidEl.style.height = fill.toFixed(1) + "%";
-  foamEl.style.height = foam.toFixed(1) + "%";
-  updateState();
+  liquidEl.style.height = fill + "%";
+  foamEl.style.height = foam + "%";
 }
 
 // ===============================
-// Game flow
+// GAME FLOW
 // ===============================
 function resetGame() {
   fill = 0;
   foam = 0;
-  wildness = 0;
-  pouring = false;
   ended = false;
   discount = 0;
 
-  hintEl.textContent = "Наливайте квас. Результат появится сразу 👇";
-
+  hintEl.textContent = "Нажмите и удерживайте «Лить», затем отпустите.";
   rewardBtn.style.display = "none";
   restartBtn.style.display = "none";
   pourBtn.disabled = false;
@@ -89,29 +68,27 @@ function endGame() {
   ended = true;
   pouring = false;
 
-  discount = calculateDiscountSoft(fill);
+  discount = calculateDiscount(fill);
 
   hintEl.textContent = `🎉 Ваша скидка ${discount}%`;
   rewardBtn.textContent = `🎁 Получить ${discount}%`;
   rewardBtn.style.display = "block";
   restartBtn.style.display = "block";
-
-  haptic(discount === 15 ? "success" : "light");
-
   pourBtn.disabled = true;
 }
 
 // ===============================
-// Controls
+// CONTROLS
 // ===============================
 function startPour() {
   if (ended) return;
   pouring = true;
-  wildness += 4;
 }
 
 function stopPour() {
+  if (!pouring) return;
   pouring = false;
+  endGame(); // ⬅️ ВАЖНО: заканчиваем ИМЕННО ТУТ
 }
 
 pourBtn.addEventListener("mousedown", startPour);
@@ -126,15 +103,14 @@ window.addEventListener("touchend", stopPour);
 window.addEventListener("touchcancel", stopPour);
 
 // ===============================
-// Reward → AmaCRM
+// REWARD → CRM
 // ===============================
 rewardBtn.addEventListener("click", () => {
   const crmUrl = "https://button.amocrm.ru/ddrtwr";
 
   const params = new URLSearchParams({
     source: "suritsa_game",
-    discount: String(discount),
-    fill: fill.toFixed(1)
+    discount: discount
   });
 
   const finalUrl = crmUrl + "?" + params.toString();
@@ -147,38 +123,28 @@ rewardBtn.addEventListener("click", () => {
 });
 
 // ===============================
-// Restart
+// RESTART
 // ===============================
 restartBtn.addEventListener("click", resetGame);
 
 // ===============================
-// Loop
+// LOOP
 // ===============================
 function tick() {
-  if (!ended) {
-    if (pouring) {
-      fill += 0.7;
-      wildness += 0.6;
-      foam += 0.4;
-    } else {
-      wildness *= 0.97;
-      foam *= 0.985;
-    }
+  if (!ended && pouring) {
+    fill += 1.2;
+    foam += 0.6;
 
     fill = clamp(fill, 0, 100);
-    wildness = clamp(wildness, 0, 100);
     foam = clamp(foam, 0, 100);
-
-    if (fill >= 100) endGame();
 
     render();
   }
-
   requestAnimationFrame(tick);
 }
 
 // ===============================
-// Start
+// START
 // ===============================
 resetGame();
 requestAnimationFrame(tick);
