@@ -1,193 +1,197 @@
-// ===============================
-// Telegram WebApp initialization
-// ===============================
-const isTG = !!(window.Telegram && Telegram.WebApp);
-
-if (isTG) {
-  Telegram.WebApp.expand();
-  Telegram.WebApp.ready();
+:root{
+  --bg:#fafafa;
+  --text:#111;
+  --muted:#666;
+  --card:#ffffff;
+  --border:#1b1b1b22;
+  --amber:#d98c2f;
+  --foam:#f3f3f3;
+  --danger:#ff3b30;
+  --shadow: 0 12px 30px rgba(0,0,0,.08);
+  --radius: 18px;
 }
 
-// ===============================
-// DOM elements
-// ===============================
-const liquidEl = document.getElementById("liquid");
-const foamEl = document.getElementById("foam");
-const stateEl = document.getElementById("state");
-const scoreEl = document.getElementById("score");
-const hintEl = document.getElementById("hint");
+*{box-sizing:border-box}
 
-const pourBtn = document.getElementById("pourBtn");
-const rewardBtn = document.getElementById("rewardBtn");
-const restartBtn = document.getElementById("restartBtn");
-
-// ===============================
-// Game state
-// ===============================
-let fill = 0;        // 0..100
-let foam = 0;        // 0..100
-let score = 0;
-
-let pouring = false;
-let wildness = 0;    // 0..100
-let ended = false;
-
-// ===============================
-// Tuning
-// ===============================
-const TARGET_FILL = 85;
-const FILL_SPEED = 0.55;
-const CALM_DECAY = 0.965;
-const FOAM_SETTLE = 0.985;
-
-// ===============================
-// Helpers
-// ===============================
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
+body{
+  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
-function setStateFromWildness() {
-  if (wildness < 22) stateEl.textContent = "Calm";
-  else if (wildness < 55) stateEl.textContent = "Active";
-  else stateEl.textContent = "Wild";
+/* ВАЖНО: разрешаем скролл */
+html, body{
+  height:100%;
+  overflow-y:auto;
 }
 
-function haptic(type) {
-  if (!isTG || !Telegram.WebApp.HapticFeedback) return;
-  try {
-    if (type === "success") Telegram.WebApp.HapticFeedback.notificationOccurred("success");
-    if (type === "error") Telegram.WebApp.HapticFeedback.notificationOccurred("error");
-    if (type === "light") Telegram.WebApp.HapticFeedback.impactOccurred("light");
-  } catch (e) {}
+#app{
+  width: 360px;
+  max-width: 94vw;
+  margin: 16px auto 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 14px 16px;
 }
 
-function render() {
-  liquidEl.style.height = fill.toFixed(2) + "%";
-  foamEl.style.height = foam.toFixed(2) + "%";
-  setStateFromWildness();
+/* Верх */
+.top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom: 10px;
 }
 
-// ===============================
-// Game logic
-// ===============================
-function resetGame() {
-  fill = 0;
-  foam = 0;
-  score = 0;
-  wildness = 0;
-  pouring = false;
-  ended = false;
-
-  scoreEl.textContent = "Очки: 0";
-  hintEl.textContent = "Зажмите «Лить», чтобы наливать. Резко — будет пена.";
-
-  rewardBtn.style.display = "none";
-  restartBtn.style.display = "none";
-  pourBtn.disabled = false;
-
-  render();
+.brand{
+  font-size: 22px;
+  font-weight: 800;
 }
 
-function endGame() {
-  if (ended) return;
-  ended = true;
-  pouring = false;
-
-  const diff = Math.abs(fill - TARGET_FILL);
-  const foamPenalty = foam * 0.9;
-  const rawScore = 100 - (diff * 1.2) - foamPenalty;
-
-  score = Math.floor(clamp(rawScore, 0, 100));
-  scoreEl.textContent = "Очки: " + score;
-
-  if (score >= 75) {
-    hintEl.textContent = "Отлично! Почти идеальный налив. Забирайте скидку 👇";
-    haptic("success");
-  } else if (score >= 45) {
-    hintEl.textContent = "Неплохо! Можно спокойнее. Скидка доступна 👇";
-    haptic("light");
-  } else {
-    hintEl.textContent = "Слишком бурно — много пены. Попробуйте ещё раз 🙂";
-    haptic("error");
-  }
-
-  rewardBtn.style.display = "block";
-  restartBtn.style.display = "block";
-  pourBtn.disabled = true;
+.stateWrap{
+  text-align:right;
+}
+.stateLabel{
+  font-size: 12px;
+  color: var(--muted);
+}
+.stateValue{
+  font-weight: 800;
+  font-size: 16px;
 }
 
-function startPour() {
-  if (ended) return;
-  pouring = true;
-  wildness += 6;
+/* Сцена */
+.stage{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:14px;
+  padding-bottom: 12px;
 }
 
-function stopPour() {
-  pouring = false;
+/* Бутылка */
+.bottle{
+  position:relative;
+  width: 150px;
+  height: 260px;
 }
 
-// ===============================
-// Controls
-// ===============================
-pourBtn.addEventListener("mousedown", startPour);
-window.addEventListener("mouseup", stopPour);
-
-pourBtn.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  startPour();
-}, { passive: false });
-
-window.addEventListener("touchend", stopPour);
-window.addEventListener("touchcancel", stopPour);
-
-// ===============================
-// Reward → AmaCRM landing
-// ===============================
-rewardBtn.addEventListener("click", () => {
-  const crmUrl = "https://button.amocrm.ru/ddrtwr";
-
-  const params = new URLSearchParams({
-    source: "suritsa_game",
-    score: String(score),
-    state: stateEl.textContent
-  });
-
-  const finalUrl = crmUrl + "?" + params.toString();
-  window.location.href = finalUrl;
-});
-
-// ===============================
-// Restart
-// ===============================
-restartBtn.addEventListener("click", resetGame);
-
-// ===============================
-// Main loop
-// ===============================
-function tick() {
-  if (!ended) {
-    if (pouring) {
-      fill += FILL_SPEED;
-      wildness += 0.9;
-      foam += (wildness / 100) * 1.25;
-    } else {
-      wildness *= CALM_DECAY;
-      foam *= FOAM_SETTLE;
-    }
-
-    fill = clamp(fill, 0, 100);
-    wildness = clamp(wildness, 0, 100);
-    foam = clamp(foam, 0, 100);
-
-    if (fill >= 100) endGame();
-
-    render();
-  }
-
-  requestAnimationFrame(tick);
+.bottleBody{
+  position:absolute;
+  left: 22px;
+  bottom: 0;
+  width: 105px;
+  height: 230px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(217,140,47,.18), rgba(217,140,47,.06));
+  border: 2px solid rgba(0,0,0,.10);
 }
 
-// Start game
-resetGame();
-requestAnimationFrame(tick);
+.bottleCap{
+  position:absolute;
+  left: 55px;
+  top: 6px;
+  width: 40px;
+  height: 24px;
+  border-radius: 10px;
+  background: #b07a2d;
+}
+
+.bottleLabel{
+  position:absolute;
+  left: 35px;
+  top: 130px;
+  width: 80px;
+  padding: 8px 0;
+  border-radius: 14px;
+  background: rgba(255,255,255,.8);
+  font-weight: 800;
+  text-align:center;
+  color: #1a7a2b;
+}
+
+/* Стакан */
+.glass{
+  position:relative;
+  width: 140px;
+  height: 260px;
+  border: 3px solid rgba(0,0,0,.6);
+  border-radius: 18px 18px 26px 26px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.target{
+  position:absolute;
+  top: 44px;
+  width:100%;
+  height:3px;
+  background: var(--danger);
+}
+
+.liquid{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:0%;
+  background: linear-gradient(180deg, #d98c2f, #c77c22);
+}
+
+.foam{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:0%;
+  background: #f3f3f3;
+}
+
+/* HUD */
+.hud{
+  padding: 6px 0 10px;
+}
+
+.score{
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.hint{
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Кнопки */
+.controls{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.btn{
+  width:100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 16px;
+  border:none;
+  cursor:pointer;
+}
+
+.btnPrimary{
+  background:#111;
+  color:#fff;
+}
+
+.btnAccent{
+  background:#1a7a2b;
+  color:#fff;
+}
+
+.btnGhost{
+  background:transparent;
+  border:1px solid rgba(0,0,0,.2);
+}
