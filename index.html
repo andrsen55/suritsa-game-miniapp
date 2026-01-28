@@ -8,15 +8,14 @@
 </head>
 <body>
 
-<div class="wrapper">
+<div class="app">
   <div class="card">
 
     <h1 class="title">Сурица</h1>
 
-    <div class="scene">
+    <div class="game-area">
       <div class="bottle">
         <div class="bottle-liquid" id="liquid"></div>
-        <div class="bottle-foam" id="foam"></div>
       </div>
 
       <div class="glass">
@@ -25,16 +24,19 @@
     </div>
 
     <div class="info">
-      <div class="state">Состояние: <b id="state">Calm</b></div>
       <div class="hint" id="hint">
         Нажмите и удерживайте «Лить». Отпустите — получите скидку.
       </div>
     </div>
 
     <div class="controls">
-      <button id="pourBtn" class="btn btn-black">🥤 Лить</button>
-      <button id="rewardBtn" class="btn btn-green" style="display:none">🎁 Получить</button>
-      <button id="restartBtn" class="btn btn-gray" style="display:none">↻ Ещё раз</button>
+      <button id="pourBtn" class="btn btn-dark">🥤 Лить</button>
+      <button id="rewardBtn" class="btn btn-green" style="display:none">
+        🎁 Получить скидку
+      </button>
+      <button id="restartBtn" class="btn btn-light" style="display:none">
+        ↻ Ещё раз
+      </button>
     </div>
 
   </div>
