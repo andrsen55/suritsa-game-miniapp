@@ -14,7 +14,6 @@ if (isTG) {
 const liquidEl = document.getElementById("liquid");
 const foamEl = document.getElementById("foam");
 const stateEl = document.getElementById("state");
-const scoreEl = document.getElementById("score");
 const hintEl = document.getElementById("hint");
 
 const pourBtn = document.getElementById("pourBtn");
@@ -24,19 +23,13 @@ const restartBtn = document.getElementById("restartBtn");
 // ===============================
 // Game state
 // ===============================
-let fill = 0;
-let foam = 0;
+let fill = 0;        // 0..100
+let foam = 0;        // 0..100
 let wildness = 0;
 let pouring = false;
 let ended = false;
-let discount = 0;
 
-// ===============================
-// Tuning
-// ===============================
-const FILL_SPEED = 0.55;
-const CALM_DECAY = 0.97;
-const FOAM_SETTLE = 0.985;
+let discount = 0;   // 5 / 10 / 15
 
 // ===============================
 // Helpers
@@ -45,16 +38,15 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function calculateDiscount(fill, foam) {
-  if (fill < 60) return 0;
-  if (fill >= 82 && foam < 40) return 15;
-  if (fill >= 75 && foam < 50) return 10;
-  return 5;
+function calculateDiscountSoft(fill) {
+  if (fill < 35) return 5;
+  if (fill < 70) return 10;
+  return 15;
 }
 
 function updateState() {
-  if (wildness < 25) stateEl.textContent = "Calm";
-  else if (wildness < 60) stateEl.textContent = "Active";
+  if (wildness < 30) stateEl.textContent = "Calm";
+  else if (wildness < 65) stateEl.textContent = "Active";
   else stateEl.textContent = "Wild";
 }
 
@@ -62,7 +54,6 @@ function haptic(type) {
   if (!isTG || !Telegram.WebApp.HapticFeedback) return;
   try {
     if (type === "success") Telegram.WebApp.HapticFeedback.notificationOccurred("success");
-    if (type === "error") Telegram.WebApp.HapticFeedback.notificationOccurred("error");
     if (type === "light") Telegram.WebApp.HapticFeedback.impactOccurred("light");
   } catch (e) {}
 }
@@ -84,8 +75,7 @@ function resetGame() {
   ended = false;
   discount = 0;
 
-  scoreEl.textContent = "";
-  hintEl.textContent = "Зажмите «Лить». Спокойнее — меньше пены.";
+  hintEl.textContent = "Наливайте квас. Результат появится сразу 👇";
 
   rewardBtn.style.display = "none";
   restartBtn.style.display = "none";
@@ -99,19 +89,14 @@ function endGame() {
   ended = true;
   pouring = false;
 
-  discount = calculateDiscount(fill, foam);
+  discount = calculateDiscountSoft(fill);
 
-  if (discount === 0) {
-    hintEl.textContent = "Маловато налили. Попробуйте ещё раз 🙂";
-    restartBtn.style.display = "block";
-    haptic("error");
-  } else {
-    hintEl.textContent = `🎉 Ваша скидка ${discount}%`;
-    rewardBtn.textContent = `🎁 Получить ${discount}%`;
-    rewardBtn.style.display = "block";
-    restartBtn.style.display = "block";
-    haptic(discount >= 10 ? "success" : "light");
-  }
+  hintEl.textContent = `🎉 Ваша скидка ${discount}%`;
+  rewardBtn.textContent = `🎁 Получить ${discount}%`;
+  rewardBtn.style.display = "block";
+  restartBtn.style.display = "block";
+
+  haptic(discount === 15 ? "success" : "light");
 
   pourBtn.disabled = true;
 }
@@ -122,7 +107,7 @@ function endGame() {
 function startPour() {
   if (ended) return;
   pouring = true;
-  wildness += 5;
+  wildness += 4;
 }
 
 function stopPour() {
@@ -149,8 +134,7 @@ rewardBtn.addEventListener("click", () => {
   const params = new URLSearchParams({
     source: "suritsa_game",
     discount: String(discount),
-    fill: fill.toFixed(1),
-    foam: foam.toFixed(1)
+    fill: fill.toFixed(1)
   });
 
   const finalUrl = crmUrl + "?" + params.toString();
@@ -173,12 +157,12 @@ restartBtn.addEventListener("click", resetGame);
 function tick() {
   if (!ended) {
     if (pouring) {
-      fill += FILL_SPEED;
-      wildness += 0.8;
-      foam += (wildness / 100) * 1.1;
+      fill += 0.7;
+      wildness += 0.6;
+      foam += 0.4;
     } else {
-      wildness *= CALM_DECAY;
-      foam *= FOAM_SETTLE;
+      wildness *= 0.97;
+      foam *= 0.985;
     }
 
     fill = clamp(fill, 0, 100);
