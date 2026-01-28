@@ -1,197 +1,51 @@
-:root{
-  --bg:#fafafa;
-  --text:#111;
-  --muted:#666;
-  --card:#ffffff;
-  --border:#1b1b1b22;
-  --amber:#d98c2f;
-  --foam:#f3f3f3;
-  --danger:#ff3b30;
-  --shadow: 0 12px 30px rgba(0,0,0,.08);
-  --radius: 18px;
+const liquid = document.getElementById("liquid");
+const foamEl = document.getElementById("foam");
+const stateEl = document.getElementById("state");
+const scoreEl = document.getElementById("score");
+
+const pourBtn = document.getElementById("pourBtnFixed");
+
+let fill = 0;
+let foam = 0;
+let pouring = false;
+let wildness = 0;
+let score = 0;
+
+function update() {
+  if (pouring) {
+    fill += 0.6;
+    wildness += 1;
+    foam += wildness * 0.01;
+  } else {
+    wildness *= 0.96;
+    foam *= 0.98;
+  }
+
+  fill = Math.min(fill, 100);
+  foam = Math.min(foam, 100);
+
+  liquid.style.height = fill + "%";
+  foamEl.style.height = foam + "%";
+
+  if (wildness < 20) stateEl.textContent = "Calm";
+  else if (wildness < 50) stateEl.textContent = "Active";
+  else stateEl.textContent = "Wild";
+
+  if (fill >= 100) {
+    pouring = false;
+    score = Math.max(0, Math.floor(100 - Math.abs(fill - 85) - foam));
+    scoreEl.textContent = "Очки: " + score;
+  }
 }
 
-*{box-sizing:border-box}
+pourBtn.addEventListener("mousedown", () => pouring = true);
+window.addEventListener("mouseup", () => pouring = false);
 
-body{
-  margin:0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
+pourBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  pouring = true;
+}, { passive: false });
 
-/* ВАЖНО: разрешаем скролл */
-html, body{
-  height:100%;
-  overflow-y:auto;
-}
+window.addEventListener("touchend", () => pouring = false);
 
-#app{
-  width: 360px;
-  max-width: 94vw;
-  margin: 16px auto 24px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 14px 14px 16px;
-}
-
-/* Верх */
-.top{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-  padding-bottom: 10px;
-}
-
-.brand{
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.stateWrap{
-  text-align:right;
-}
-.stateLabel{
-  font-size: 12px;
-  color: var(--muted);
-}
-.stateValue{
-  font-weight: 800;
-  font-size: 16px;
-}
-
-/* Сцена */
-.stage{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  gap:14px;
-  padding-bottom: 12px;
-}
-
-/* Бутылка */
-.bottle{
-  position:relative;
-  width: 150px;
-  height: 260px;
-}
-
-.bottleBody{
-  position:absolute;
-  left: 22px;
-  bottom: 0;
-  width: 105px;
-  height: 230px;
-  border-radius: 26px;
-  background: linear-gradient(180deg, rgba(217,140,47,.18), rgba(217,140,47,.06));
-  border: 2px solid rgba(0,0,0,.10);
-}
-
-.bottleCap{
-  position:absolute;
-  left: 55px;
-  top: 6px;
-  width: 40px;
-  height: 24px;
-  border-radius: 10px;
-  background: #b07a2d;
-}
-
-.bottleLabel{
-  position:absolute;
-  left: 35px;
-  top: 130px;
-  width: 80px;
-  padding: 8px 0;
-  border-radius: 14px;
-  background: rgba(255,255,255,.8);
-  font-weight: 800;
-  text-align:center;
-  color: #1a7a2b;
-}
-
-/* Стакан */
-.glass{
-  position:relative;
-  width: 140px;
-  height: 260px;
-  border: 3px solid rgba(0,0,0,.6);
-  border-radius: 18px 18px 26px 26px;
-  overflow:hidden;
-  background:#fff;
-}
-
-.target{
-  position:absolute;
-  top: 44px;
-  width:100%;
-  height:3px;
-  background: var(--danger);
-}
-
-.liquid{
-  position:absolute;
-  bottom:0;
-  width:100%;
-  height:0%;
-  background: linear-gradient(180deg, #d98c2f, #c77c22);
-}
-
-.foam{
-  position:absolute;
-  bottom:0;
-  width:100%;
-  height:0%;
-  background: #f3f3f3;
-}
-
-/* HUD */
-.hud{
-  padding: 6px 0 10px;
-}
-
-.score{
-  font-weight: 800;
-  font-size: 18px;
-}
-
-.hint{
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* Кнопки */
-.controls{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.btn{
-  width:100%;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 800;
-  border-radius: 16px;
-  border:none;
-  cursor:pointer;
-}
-
-.btnPrimary{
-  background:#111;
-  color:#fff;
-}
-
-.btnAccent{
-  background:#1a7a2b;
-  color:#fff;
-}
-
-.btnGhost{
-  background:transparent;
-  border:1px solid rgba(0,0,0,.2);
-}
+setInterval(update, 50);
