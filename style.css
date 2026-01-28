@@ -12,20 +12,24 @@
 }
 
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+}
+
+/* ВАЖНО: разрешаем скролл */
+html, body{
+  height:100%;
+  overflow-y:auto;
 }
 
 #app{
   width: 360px;
-  max-width: 92vw;
+  max-width: 94vw;
+  margin: 16px auto 24px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -33,18 +37,18 @@ body{
   padding: 14px 14px 16px;
 }
 
+/* Верх */
 .top{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
-  padding: 2px 2px 10px;
+  padding-bottom: 10px;
 }
 
 .brand{
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: .3px;
 }
 
 .stateWrap{
@@ -59,40 +63,33 @@ body{
   font-size: 16px;
 }
 
+/* Сцена */
 .stage{
   display:flex;
   justify-content:space-between;
   align-items:flex-end;
   gap:14px;
-  padding: 6px 2px 10px;
+  padding-bottom: 12px;
 }
 
-/* Bottle (stylized placeholder) */
+/* Бутылка */
 .bottle{
   position:relative;
   width: 150px;
   height: 260px;
-  transform-origin: 60% 85%;
-  border-radius: 26px;
 }
-.bottleGlow{
-  position:absolute;
-  inset: -8px -8px -8px -8px;
-  border-radius: 40px;
-  background: radial-gradient(circle at 50% 40%, rgba(217,140,47,.22), rgba(0,0,0,0) 65%);
-  filter: blur(1px);
-  pointer-events:none;
-}
+
 .bottleBody{
   position:absolute;
   left: 22px;
   bottom: 0;
   width: 105px;
   height: 230px;
-  border-radius: 26px 26px 26px 26px;
+  border-radius: 26px;
   background: linear-gradient(180deg, rgba(217,140,47,.18), rgba(217,140,47,.06));
   border: 2px solid rgba(0,0,0,.10);
 }
+
 .bottleCap{
   position:absolute;
   left: 55px;
@@ -101,124 +98,87 @@ body{
   height: 24px;
   border-radius: 10px;
   background: #b07a2d;
-  border: 2px solid rgba(0,0,0,.12);
 }
+
 .bottleLabel{
   position:absolute;
   left: 35px;
   top: 130px;
   width: 80px;
-  padding: 10px 0;
+  padding: 8px 0;
   border-radius: 14px;
-  background: rgba(255,255,255,.75);
-  border: 1px solid rgba(0,0,0,.08);
-  font-weight: 900;
-  letter-spacing: 1px;
+  background: rgba(255,255,255,.8);
+  font-weight: 800;
   text-align:center;
   color: #1a7a2b;
-  user-select:none;
-}
-.bubbles{
-  position:absolute;
-  left: 32px;
-  top: 56px;
-  width: 92px;
-  height: 120px;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,.35) 0 3px, transparent 4px),
-    radial-gradient(circle at 55% 65%, rgba(255,255,255,.28) 0 2px, transparent 3px),
-    radial-gradient(circle at 70% 40%, rgba(255,255,255,.22) 0 2px, transparent 3px),
-    radial-gradient(circle at 35% 30%, rgba(255,255,255,.18) 0 2px, transparent 3px);
-  opacity:.6;
-  pointer-events:none;
 }
 
-/* Glass */
+/* Стакан */
 .glass{
   position:relative;
   width: 140px;
   height: 260px;
-  border: 3px solid rgba(0,0,0,.65);
-  border-top: 2px solid rgba(0,0,0,.40);
+  border: 3px solid rgba(0,0,0,.6);
   border-radius: 18px 18px 26px 26px;
   overflow:hidden;
-  background: #fff;
+  background:#fff;
 }
 
 .target{
   position:absolute;
-  left:0;
   top: 44px;
   width:100%;
-  height: 3px;
+  height:3px;
   background: var(--danger);
-  opacity:.9;
 }
 
 .liquid{
   position:absolute;
-  left:0;
   bottom:0;
   width:100%;
   height:0%;
-  background: linear-gradient(180deg, rgba(217,140,47,.95), rgba(217,140,47,.75));
-  transition: height .06s linear;
+  background: linear-gradient(180deg, #d98c2f, #c77c22);
 }
 
 .foam{
   position:absolute;
-  left:0;
   bottom:0;
   width:100%;
   height:0%;
-  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(243,243,243,.92));
-  opacity:.95;
-  transition: height .06s linear;
+  background: #f3f3f3;
 }
 
-.glassShine{
-  position:absolute;
-  top: 10px;
-  left: 10px;
-  width: 18px;
-  height: 210px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.35);
-  transform: rotate(3deg);
-  pointer-events:none;
-}
-
+/* HUD */
 .hud{
-  padding: 4px 2px 8px;
+  padding: 6px 0 10px;
 }
+
 .score{
-  font-weight: 900;
+  font-weight: 800;
   font-size: 18px;
 }
+
 .hint{
   margin-top: 6px;
-  color: var(--muted);
   font-size: 12px;
-  line-height: 1.35;
+  color: var(--muted);
 }
 
+/* Кнопки */
 .controls{
   display:flex;
   flex-direction:column;
   gap:8px;
-  padding-top: 6px;
 }
 
 .btn{
   width:100%;
-  border:none;
-  border-radius: 16px;
-  padding: 12px 12px;
+  padding: 12px;
   font-size: 16px;
   font-weight: 800;
+  border-radius: 16px;
+  border:none;
   cursor:pointer;
-  user-select:none;
 }
 
 .btnPrimary{
@@ -227,19 +187,12 @@ body{
 }
 
 .btnAccent{
-  background: #1a7a2b;
+  background:#1a7a2b;
   color:#fff;
 }
 
 .btnGhost{
-  background: transparent;
-  border: 1px solid rgba(0,0,0,.18);
-  color:#111;
+  background:transparent;
+  border:1px solid rgba(0,0,0,.2);
 }
 
-/* small screens */
-@media (max-width: 360px){
-  #app{width: 320px}
-  .bottle{width: 140px}
-  .glass{width: 130px}
-}
