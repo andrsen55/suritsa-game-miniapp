@@ -1,1 +1,68 @@
-/* styles will be here */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#app {
+  width: 320px;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+#state {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#glass {
+  position: relative;
+  width: 120px;
+  height: 240px;
+  margin: 0 auto 15px;
+  border: 3px solid #333;
+  border-radius: 0 0 20px 20px;
+  overflow: hidden;
+  background: #fff;
+}
+
+#liquid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: #d98c2f;
+  transition: height 0.1s;
+}
+
+#foam {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: #f5f5f5;
+  opacity: 0.9;
+  transition: height 0.1s;
+}
+
+#target {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  height: 2px;
+  background: red;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 16px;
+}
