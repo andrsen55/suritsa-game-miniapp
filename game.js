@@ -1,31 +1,23 @@
-// Telegram init
 const isTG = !!(window.Telegram && Telegram.WebApp);
 if (isTG) {
   Telegram.WebApp.expand();
   Telegram.WebApp.ready();
 }
 
-// DOM
 const liquidEl = document.getElementById("liquid");
-const foamEl = document.getElementById("foam");
-const stateEl = document.getElementById("state");
 const hintEl = document.getElementById("hint");
-
 const pourBtn = document.getElementById("pourBtn");
 const rewardBtn = document.getElementById("rewardBtn");
 const restartBtn = document.getElementById("restartBtn");
 
-// State
 let fill = 0;
 let pouring = false;
 let ended = false;
 let discount = 10;
 
-// Settings
-const FILL_SPEED = 1.6;
-const DISCOUNT_THRESHOLD = 75;
+const FILL_SPEED = 1.8;
+const DISCOUNT_THRESHOLD = 70;
 
-// Helpers
 function clamp(v) {
   return Math.max(0, Math.min(100, v));
 }
@@ -64,7 +56,6 @@ function finishGame() {
   pourBtn.disabled = true;
 }
 
-// Controls
 function startPour(e) {
   if (ended) return;
   pouring = true;
@@ -80,48 +71,37 @@ pourBtn.addEventListener("mousedown", startPour);
 pourBtn.addEventListener("mouseup", stopPour);
 pourBtn.addEventListener("mouseleave", stopPour);
 
-pourBtn.addEventListener(
-  "touchstart",
-  (e) => {
-    e.preventDefault();
-    startPour();
-  },
-  { passive: false }
-);
+pourBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  startPour();
+}, { passive: false });
 
-pourBtn.addEventListener(
-  "touchend",
-  (e) => {
-    e.preventDefault();
-    stopPour();
-  },
-  { passive: false }
-);
+pourBtn.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  stopPour();
+}, { passive: false });
 
 window.addEventListener("mouseup", stopPour);
 window.addEventListener("touchend", stopPour);
 
-// Reward
 rewardBtn.addEventListener("click", () => {
   const crmUrl = "https://button.amocrm.ru/ddrtwr";
   const params = new URLSearchParams({
     source: "suritsa_game",
-    discount: discount,
+    discount: discount
   });
 
   const finalUrl = crmUrl + "?" + params.toString();
 
   if (isTG) {
-    Telegram.WebApp.openLink(finalUrl);
+    Telegram.WebApp.openLink(finalUrl); // confirm — это НОРМА
   } else {
     window.open(finalUrl, "_blank");
   }
 });
 
-// Restart
 restartBtn.addEventListener("click", resetGame);
 
-// Loop
 function tick() {
   if (pouring && !ended) {
     fill = clamp(fill + FILL_SPEED);
@@ -130,6 +110,5 @@ function tick() {
   requestAnimationFrame(tick);
 }
 
-// Start
 resetGame();
 requestAnimationFrame(tick);
