@@ -9,7 +9,7 @@ if (isTG) {
 }
 
 // ===============================
-// DOM elements
+// DOM
 // ===============================
 const liquidEl = document.getElementById("liquid");
 const foamEl = document.getElementById("foam");
@@ -29,11 +29,9 @@ let foam = 0;        // 0..100
 let wildness = 0;    // 0..100
 let pouring = false;
 let ended = false;
-let score = 0;
 
-// ===============================
-// Tuning
-// ===============================
+let discount = 0;   // итоговая скидка %
+
 const TARGET_FILL = 85;
 const FILL_SPEED = 0.55;
 const CALM_DECAY = 0.965;
@@ -44,6 +42,15 @@ const FOAM_SETTLE = 0.985;
 // ===============================
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
+}
+
+function getDiscountByResult(fill, foam) {
+  const diff = Math.abs(fill - TARGET_FILL);
+
+  if (diff <= 4 && foam < 10) return 15;
+  if (diff <= 7 && foam < 20) return 10;
+  if (diff <= 10 && foam < 30) return 5;
+  return 0;
 }
 
 function setState() {
@@ -68,7 +75,7 @@ function render() {
 }
 
 // ===============================
-// Game logic
+// Game flow
 // ===============================
 function resetGame() {
   fill = 0;
@@ -76,10 +83,10 @@ function resetGame() {
   wildness = 0;
   pouring = false;
   ended = false;
-  score = 0;
+  discount = 0;
 
-  scoreEl.textContent = "Очки: 0";
-  hintEl.textContent = "Зажмите кнопку «Лить». Резко — будет больше пены.";
+  scoreEl.textContent = "";
+  hintEl.textContent = "Зажмите кнопку «Лить». Спокойно — меньше пены.";
 
   rewardBtn.style.display = "none";
   restartBtn.style.display = "none";
@@ -93,26 +100,20 @@ function endGame() {
   ended = true;
   pouring = false;
 
-  const diff = Math.abs(fill - TARGET_FILL);
-  const foamPenalty = foam * 0.9;
-  const rawScore = 100 - (diff * 1.2) - foamPenalty;
+  discount = getDiscountByResult(fill, foam);
 
-  score = Math.floor(clamp(rawScore, 0, 100));
-  scoreEl.textContent = "Очки: " + score;
-
-  if (score >= 75) {
-    hintEl.textContent = "Отлично! Почти идеальный налив. Забирайте скидку 👇";
-    haptic("success");
-  } else if (score >= 45) {
-    hintEl.textContent = "Неплохо! Можно спокойнее. Скидка доступна 👇";
-    haptic("light");
-  } else {
-    hintEl.textContent = "Слишком бурно — много пены. Попробуйте ещё раз 🙂";
+  if (discount === 0) {
+    hintEl.textContent = "Слишком бурно. Попробуйте ещё раз 🙂";
     haptic("error");
+    restartBtn.style.display = "block";
+  } else {
+    hintEl.textContent = `🎉 Ваша скидка ${discount}%`;
+    rewardBtn.textContent = `🎁 Получить ${discount}%`;
+    rewardBtn.style.display = "block";
+    restartBtn.style.display = "block";
+    haptic(discount >= 10 ? "success" : "light");
   }
 
-  rewardBtn.style.display = "block";
-  restartBtn.style.display = "block";
   pourBtn.disabled = true;
 }
 
@@ -146,14 +147,14 @@ window.addEventListener("touchend", stopPour);
 window.addEventListener("touchcancel", stopPour);
 
 // ===============================
-// Reward → AmaCRM (ПРАВИЛЬНО ДЛЯ TELEGRAM)
+// Reward → AmaCRM → второй бот
 // ===============================
 rewardBtn.addEventListener("click", () => {
   const crmUrl = "https://button.amocrm.ru/ddrtwr";
 
   const params = new URLSearchParams({
     source: "suritsa_game",
-    score: String(score),
+    discount: String(discount),
     state: stateEl.textContent
   });
 
