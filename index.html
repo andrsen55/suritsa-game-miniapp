@@ -4,26 +4,50 @@
   <meta charset="UTF-8" />
   <title>Сурица — Living Pour</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#f6f6f6" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-<div id="app">
-  <h2>Сурица</h2>
-  <div id="state">Calm</div>
+<div class="wrap">
+  <div class="card">
+    <div class="top">
+      <div class="brand">Сурица</div>
+      <div class="right">
+        <div class="label">Состояние</div>
+        <div id="state" class="value">Calm</div>
+      </div>
+    </div>
 
-  <div id="glass">
-    <div id="target"></div>
-    <div id="liquid"></div>
-    <div id="foam"></div>
+    <div class="stage">
+      <div class="bottle" aria-hidden="true">
+        <div class="cap"></div>
+        <div class="body"></div>
+        <div class="sticker">СУРИЦА</div>
+      </div>
+
+      <div id="glass" class="glass">
+        <div id="target" class="target"></div>
+        <div id="liquid" class="liquid"></div>
+        <div id="foam" class="foam"></div>
+        <div class="shine"></div>
+      </div>
+    </div>
+
+    <div class="hud">
+      <div id="score" class="score">Очки: 0</div>
+      <div id="hint" class="hint">Зажмите кнопку «Лить». Резко — будет больше пены.</div>
+    </div>
   </div>
-
-  <div id="score">Очки: 0</div>
 </div>
 
-<!-- 🔥 АВАРИЙНАЯ КНОПКА -->
-<button id="pourBtnFixed">🫗 Лить</button>
+<!-- FIXED CONTROLS (всегда видны) -->
+<div class="controlsFixed">
+  <button id="pourBtn" class="btn btnPrimary">🫗 Лить</button>
+  <button id="rewardBtn" class="btn btnAccent" style="display:none;">🎁 Получить скидку</button>
+  <button id="restartBtn" class="btn btnGhost" style="display:none;">↻ Ещё раз</button>
+</div>
 
 <script src="game.js"></script>
 </body>
