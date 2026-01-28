@@ -20,7 +20,7 @@ const rewardBtn = document.getElementById("rewardBtn");
 const restartBtn = document.getElementById("restartBtn");
 
 // ===============================
-// STATE
+// State
 // ===============================
 let fill = 0;
 let foam = 0;
@@ -29,15 +29,15 @@ let ended = false;
 let discount = 0;
 
 // ===============================
-// HELPERS
+// Helpers
 // ===============================
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
 function calculateDiscount(fill) {
-  if (fill < 30) return 5;
-  if (fill < 65) return 10;
+  // 👉 ТОЛЬКО 10% И 15%
+  if (fill < 70) return 10;
   return 15;
 }
 
@@ -47,15 +47,16 @@ function render() {
 }
 
 // ===============================
-// GAME FLOW
+// Game flow
 // ===============================
 function resetGame() {
   fill = 0;
   foam = 0;
+  pouring = false;
   ended = false;
   discount = 0;
 
-  hintEl.textContent = "Нажмите и удерживайте «Лить», затем отпустите.";
+  hintEl.textContent = "Наливайте. Отпустите кнопку — получите скидку.";
   rewardBtn.style.display = "none";
   restartBtn.style.display = "none";
   pourBtn.disabled = false;
@@ -78,7 +79,7 @@ function endGame() {
 }
 
 // ===============================
-// CONTROLS
+// Controls
 // ===============================
 function startPour() {
   if (ended) return;
@@ -88,7 +89,7 @@ function startPour() {
 function stopPour() {
   if (!pouring) return;
   pouring = false;
-  endGame(); // ⬅️ ВАЖНО: заканчиваем ИМЕННО ТУТ
+  endGame();
 }
 
 pourBtn.addEventListener("mousedown", startPour);
@@ -103,7 +104,7 @@ window.addEventListener("touchend", stopPour);
 window.addEventListener("touchcancel", stopPour);
 
 // ===============================
-// REWARD → CRM
+// Reward → CRM
 // ===============================
 rewardBtn.addEventListener("click", () => {
   const crmUrl = "https://button.amocrm.ru/ddrtwr";
@@ -123,16 +124,16 @@ rewardBtn.addEventListener("click", () => {
 });
 
 // ===============================
-// RESTART
+// Restart
 // ===============================
 restartBtn.addEventListener("click", resetGame);
 
 // ===============================
-// LOOP
+// Loop
 // ===============================
 function tick() {
   if (!ended && pouring) {
-    fill += 1.2;
+    fill += 1.4;
     foam += 0.6;
 
     fill = clamp(fill, 0, 100);
@@ -144,7 +145,7 @@ function tick() {
 }
 
 // ===============================
-// START
+// Start
 // ===============================
 resetGame();
 requestAnimationFrame(tick);
