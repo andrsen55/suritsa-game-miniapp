@@ -24,17 +24,18 @@ const restartBtn = document.getElementById("restartBtn");
 // ===============================
 // Game state
 // ===============================
-let fill = 0;        // 0..100
-let foam = 0;        // 0..100
-let wildness = 0;    // 0..100
+let fill = 0;
+let foam = 0;
+let wildness = 0;
 let pouring = false;
 let ended = false;
+let discount = 0;
 
-let discount = 0;   // итоговая скидка %
-
-const TARGET_FILL = 85;
+// ===============================
+// Tuning
+// ===============================
 const FILL_SPEED = 0.55;
-const CALM_DECAY = 0.965;
+const CALM_DECAY = 0.97;
 const FOAM_SETTLE = 0.985;
 
 // ===============================
@@ -44,18 +45,16 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function getDiscountByResult(fill, foam) {
-  const diff = Math.abs(fill - TARGET_FILL);
-
-  if (diff <= 4 && foam < 10) return 15;
-  if (diff <= 7 && foam < 20) return 10;
-  if (diff <= 10 && foam < 30) return 5;
-  return 0;
+function calculateDiscount(fill, foam) {
+  if (fill < 60) return 0;
+  if (fill >= 82 && foam < 40) return 15;
+  if (fill >= 75 && foam < 50) return 10;
+  return 5;
 }
 
-function setState() {
-  if (wildness < 22) stateEl.textContent = "Calm";
-  else if (wildness < 55) stateEl.textContent = "Active";
+function updateState() {
+  if (wildness < 25) stateEl.textContent = "Calm";
+  else if (wildness < 60) stateEl.textContent = "Active";
   else stateEl.textContent = "Wild";
 }
 
@@ -69,9 +68,9 @@ function haptic(type) {
 }
 
 function render() {
-  liquidEl.style.height = fill.toFixed(2) + "%";
-  foamEl.style.height = foam.toFixed(2) + "%";
-  setState();
+  liquidEl.style.height = fill.toFixed(1) + "%";
+  foamEl.style.height = foam.toFixed(1) + "%";
+  updateState();
 }
 
 // ===============================
@@ -86,7 +85,7 @@ function resetGame() {
   discount = 0;
 
   scoreEl.textContent = "";
-  hintEl.textContent = "Зажмите кнопку «Лить». Спокойно — меньше пены.";
+  hintEl.textContent = "Зажмите «Лить». Спокойнее — меньше пены.";
 
   rewardBtn.style.display = "none";
   restartBtn.style.display = "none";
@@ -100,12 +99,12 @@ function endGame() {
   ended = true;
   pouring = false;
 
-  discount = getDiscountByResult(fill, foam);
+  discount = calculateDiscount(fill, foam);
 
   if (discount === 0) {
-    hintEl.textContent = "Слишком бурно. Попробуйте ещё раз 🙂";
-    haptic("error");
+    hintEl.textContent = "Маловато налили. Попробуйте ещё раз 🙂";
     restartBtn.style.display = "block";
+    haptic("error");
   } else {
     hintEl.textContent = `🎉 Ваша скидка ${discount}%`;
     rewardBtn.textContent = `🎁 Получить ${discount}%`;
@@ -123,8 +122,7 @@ function endGame() {
 function startPour() {
   if (ended) return;
   pouring = true;
-  wildness += 6;
-  wildness = clamp(wildness, 0, 100);
+  wildness += 5;
 }
 
 function stopPour() {
@@ -134,20 +132,16 @@ function stopPour() {
 pourBtn.addEventListener("mousedown", startPour);
 window.addEventListener("mouseup", stopPour);
 
-pourBtn.addEventListener(
-  "touchstart",
-  (e) => {
-    e.preventDefault();
-    startPour();
-  },
-  { passive: false }
-);
+pourBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  startPour();
+}, { passive: false });
 
 window.addEventListener("touchend", stopPour);
 window.addEventListener("touchcancel", stopPour);
 
 // ===============================
-// Reward → AmaCRM → второй бот
+// Reward → AmaCRM
 // ===============================
 rewardBtn.addEventListener("click", () => {
   const crmUrl = "https://button.amocrm.ru/ddrtwr";
@@ -155,7 +149,8 @@ rewardBtn.addEventListener("click", () => {
   const params = new URLSearchParams({
     source: "suritsa_game",
     discount: String(discount),
-    state: stateEl.textContent
+    fill: fill.toFixed(1),
+    foam: foam.toFixed(1)
   });
 
   const finalUrl = crmUrl + "?" + params.toString();
@@ -173,14 +168,14 @@ rewardBtn.addEventListener("click", () => {
 restartBtn.addEventListener("click", resetGame);
 
 // ===============================
-// Main loop
+// Loop
 // ===============================
 function tick() {
   if (!ended) {
     if (pouring) {
       fill += FILL_SPEED;
-      wildness += 0.9;
-      foam += (wildness / 100) * 1.25;
+      wildness += 0.8;
+      foam += (wildness / 100) * 1.1;
     } else {
       wildness *= CALM_DECAY;
       foam *= FOAM_SETTLE;
